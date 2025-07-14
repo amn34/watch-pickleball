@@ -991,7 +991,7 @@
                         <div style="font-weight: 600; margin-bottom: 5px;">
                             vs ${match.opponents} (with ${match.partner})
                         </div>
-                        <div style="color: #666; font-size: 0.9em;">${match.date}</div>
+                        <div style="color: #666; font-size: 0.9em;">${new Date(match.date).toLocaleDateString()}</div>
                     </div>
                     <div class="match-result ${match.result}">
                         ${match.result.toUpperCase()}
@@ -1098,7 +1098,7 @@
             addDoc(collection(db, "matches"), match)
 
             // Add match to individual player histories
-            const matchDate = new Date().toLocaleDateString();
+            const matchDate = new Date().getTime();
 
             // Winners
             winningTeam[0].addMatch({
@@ -1194,7 +1194,7 @@
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 1.2em; font-weight: bold; color: #667eea;">${match.score}</div>
-                        <div style="font-size: 0.9em; color: #666;">${match.date}</div>
+                        <div style="font-size: 0.9em; color: #666;">${new Date(match.date).toLocaleDateString()}</div>
                     </div>
                 `;
                 historyDiv.appendChild(matchDiv);
@@ -1216,6 +1216,10 @@
         const matchesSnapshot = await getDocs(collection(db, "matches"))
         matchesSnapshot.forEach(doc => {
             matches.unshift(doc.data())
+        })
+        matches.sort((a, b) => a.date > b.date ? -1 : 1)
+        matches.forEach(match => {
+            console.log(new Date(match.date))
         })
         document.getElementById("leaderboard-tab").onclick = event => showTab(event, "leaderboard")
         document.getElementById("add-match-tab").onclick = event => showTab(event, "add-match")
