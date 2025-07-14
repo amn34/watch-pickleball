@@ -860,8 +860,6 @@
 
             // Show selected tab
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-
             if (tabName === 'leaderboard') {
                 updateLeaderboard();
             } else if (tabName === 'add-match') {
@@ -894,6 +892,12 @@
                     <div class="rd">${Math.round(player.rd)}</div>
                     <div class="vol">${player.vol.toFixed(3)}</div>
                 `;
+                row.onclick = (event) => {
+                    showTab(event, 'player-profile')
+                    document.getElementById('profile-player').value = players.indexOf(player)
+                    updatePlayerProfile()
+                }
+
                 tbody.appendChild(row);
             });
         }
@@ -1208,7 +1212,6 @@
         playerSnapshot.forEach(doc => {
             const player = doc.data()
             players.push(new GlickoPlayer(player.name, player.rating, player.rd, player.vol, player.matches, player.ratingHistory, player.matchHistory, player.wins, player.losses))
-            console.log(players)
         })
         const matchesSnapshot = await getDocs(collection(db, "matches"))
         matchesSnapshot.forEach(doc => {
