@@ -859,7 +859,6 @@
             const winner2Index = document.getElementById('winner2').value;
             const loser1Index = document.getElementById('loser1').value;
             const loser2Index = document.getElementById('loser2').value;
-            console.log(winner1Index, winner2Index, loser1Index, loser2Index)
             const winningScore = parseInt(document.getElementById('winning-score').value);
             const losingScore = parseInt(document.getElementById('losing-score').value);
 
@@ -883,7 +882,6 @@
             // Get player objects
             const winningTeam = [players[winner1Index], players[winner2Index]];
             const losingTeam = [players[loser1Index], players[loser2Index]];
-            console.log(winningTeam, losingTeam)
             addMatch2(winningTeam, losingTeam, winningScore, losingScore)
         }
 
