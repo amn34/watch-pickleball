@@ -338,11 +338,11 @@
         <h1>🏓 Pickleball Leaderboard</h1>
 
         <div class="tabs">
-            <button class="tab active" onclick="showTab('leaderboard')">Leaderboard</button>
-            <button class="tab" onclick="showTab('add-match')">Add Match</button>
-            <button class="tab" onclick="showTab('add-player')">Add Player</button>
-            <button class="tab" onclick="showTab('matches')">Match History</button>
-            <button class="tab" onclick="showTab('player-profile')">Player Profile</button>
+            <button class="tab active" id="leaderboard-tab">Leaderboard</button>
+            <button class="tab" id="add-match-tab">Add Match</button>
+            <button class="tab" id="add-player-tab">Add Player</button>
+            <button class="tab" id="player-profile-tab">Player Profile</button>
+            <button class="tab" id="matches-tab">Match History</button>
         </div>
 
         <div id="leaderboard" class="tab-content active">
@@ -395,7 +395,7 @@
                         <input type="number" id="losing-score" min="0" max="20" value="9">
                     </div>
                 </div>
-                <button class="btn" onclick="addMatch()">Add Match</button>
+                <button class="btn" id="addMatch">Add Match</button>
             </div>
         </div>
 
@@ -406,7 +406,7 @@
                     <label for="player-name">Player Name</label>
                     <input type="text" id="player-name" placeholder="Enter player name">
                 </div>
-                <button class="btn" onclick="addPlayer()">Add Player</button>
+                <button class="btn" id="addPlayer">Add Player</button>
             </div>
         </div>
 
@@ -422,7 +422,7 @@
                 <h2>Player Profile</h2>
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label for="profile-player">Select Player</label>
-                    <select id="profile-player" onchange="updatePlayerProfile()">
+                    <select id="profile-player">
                         <option value="">Choose a player</option>
                     </select>
                 </div>
@@ -448,33 +448,62 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.0.1/chart.umd.js" crossorigin="anonymous"
         referrerpolicy="no-referrer"></script>
     </script>
-    <script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+        import { collection, getFirestore, doc, setDoc, addDoc, getDocs } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js'
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3JXaSvLVnU4QPhWrnxXwXaBdTdescg98",
+            authDomain: "watch-pickleball-9b260.firebaseapp.com",
+            projectId: "watch-pickleball-9b260",
+            storageBucket: "watch-pickleball-9b260.firebasestorage.app",
+            messagingSenderId: "508288101353",
+            appId: "1:508288101353:web:0097caecb0f56dae393978"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app)
         // GLICKO Rating System Implementation
         class GlickoPlayer {
-            constructor(name, rating = 1500, rd = 350, vol = 0.06) {
+            constructor(name, rating = 1500, rd = 350, vol = 0.06, matches, ratingHistory, matchHistory, wins, losses) {
                 this.name = name;
                 this.rating = rating;
                 this.rd = rd; // Rating Deviation
                 this.vol = vol; // Volatility
-                this.matches = 0;
-                this.ratingHistory = [{ rating: rating, rd: rd, date: new Date().toLocaleDateString() }];
-                this.matchHistory = [];
-                this.wins = 0;
-                this.losses = 0;
+                this.matches = matches;
+                this.ratingHistory = ratingHistory;
+                this.matchHistory = matchHistory;
+                this.wins = wins;
+                this.losses = losses;
             }
 
             addMatch(matchData) {
                 this.matchHistory.push(matchData);
-                this.ratingHistory.push({
+                const ratingHistoryEntry = {
                     rating: this.rating,
                     rd: this.rd,
                     date: new Date().toLocaleDateString()
-                });
+                }
+                this.ratingHistory.push(ratingHistoryEntry);
                 if (matchData.result === 'win') {
                     this.wins++;
                 } else {
                     this.losses++;
                 }
+                setDoc(doc(db, "players", this.name), {
+                    name: this.name,
+                    rating: this.rating,
+                    rd: this.rd,
+                    vo: this.vol,
+                    matches: this.matches,
+                    ratingHistory: this.ratingHistory,
+                    matchHistory: this.matchHistory,
+                    wins: this.wins,
+                    losses: this.losses
+                })
             }
 
             getWinRate() {
@@ -630,32 +659,8 @@
             }
         }
 
-        let cam = new GlickoPlayer("Cam")
-        let jackleyn = new GlickoPlayer("Jackelyn")
-        let shashank = new GlickoPlayer("Shashank")
-        let temi = new GlickoPlayer("Temi")
-        let anthony = new GlickoPlayer("Anthony")
-
-        // Application State
-        let players = [
-            cam, jackleyn, shashank, temi, anthony
-        ];
-        let matches = [];
-        const glicko = new GlickoSystem();
-
-        addMatch2([cam, jackleyn], [shashank, temi], 11, 3)
-        addMatch2([cam, jackleyn], [anthony, temi], 11, 6)
-        addMatch2([cam, jackleyn], [shashank, anthony], 12, 10)
-        addMatch2([cam, temi], [shashank, anthony], 11, 7)
-        addMatch2([cam, temi], [jackleyn, anthony], 11, 2)
-        addMatch2([shashank, cam], [jackleyn, anthony], 11, 0)
-        addMatch2([shashank, temi], [jackleyn, anthony], 11, 8)
-        addMatch2([shashank, temi], [jackleyn, cam], 12, 10)
-
-
-
         // UI Functions
-        function showTab(tabName) {
+        function showTab(event, tabName) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
@@ -886,8 +891,7 @@
             // Update ratings
             glicko.updateTeamRatings(winningTeam, losingTeam);
 
-            // Record match
-            matches.unshift({
+            const match = {
                 winningTeam: `${winningTeam[0].name} & ${winningTeam[1].name}`,
                 losingTeam: `${losingTeam[0].name} & ${losingTeam[1].name}`,
                 score: `${winningScore}-${losingScore}`,
@@ -896,7 +900,11 @@
                     winners: winningTeam.map(p => ({ name: p.name, rating: Math.round(p.rating) })),
                     losers: losingTeam.map(p => ({ name: p.name, rating: Math.round(p.rating) }))
                 }
-            });
+            };
+
+            // Record match
+            matches.unshift(match);
+            addDoc(collection(db, "matches"), match)
 
             // Add match to individual player histories
             const matchDate = new Date().toLocaleDateString();
@@ -965,7 +973,7 @@
                 return;
             }
 
-            players.push(new GlickoPlayer(name));
+            players.push(new GlickoPlayer(name, 1500, 350, 0.06, 0, [{ rating: 1500, rd: 350, date: new Date().toLocaleDateString() }], [], 0, 0));
             document.getElementById('player-name').value = '';
             alert('Player added successfully!');
         }
@@ -1002,7 +1010,32 @@
             });
         }
 
+        // Application State
+        let players = [];
+        let matches = [];
+        const glicko = new GlickoSystem();
         // Initialize the app
+
+        // Get Players from FireStore
+        const playerSnapshot = await getDocs(collection(db, "players"))
+        playerSnapshot.forEach(doc => {
+            const player = doc.data()
+            players.push(new GlickoPlayer(player.name, player.rating, player.rd, player.vol, player.matches, player.ratingHistory, player.matchHistory, player.wins, player.losses))
+            console.log(players)
+        })
+        const matchesSnapshot = await getDocs(collection(db, "matches"))
+        matchesSnapshot.forEach(doc => {
+            matches.unshift(doc.data())
+        })
+        document.getElementById("leaderboard-tab").onclick = event => showTab(event, "leaderboard")
+        document.getElementById("add-match-tab").onclick = event => showTab(event, "add-match")
+        document.getElementById("add-player-tab").onclick = event => showTab(event, "add-player")
+        document.getElementById("matches-tab").onclick = event => showTab(event, "matches")
+        document.getElementById("player-profile-tab").onclick = event => showTab(event, "player-profile")
+        document.getElementById("profile-player").onchange = event => updatePlayerProfile()
+        document.getElementById("addMatch").onclick = event => addMatch()
+        document.getElementById("addPlayer").onclick = event => addPlayer()
+
         updateLeaderboard();
     </script>
 </body>
