@@ -339,13 +339,17 @@
                 text-align: center;
             }
 
-            .leaderboard-header, .player-row {
+            .leaderboard-header,
+            .player-row {
                 grid-template-columns: 50px 1fr 80px;
                 gap: 10px;
             }
 
-            .rd, .vol { display: none; }
-            
+            .rd,
+            .vol {
+                display: none;
+            }
+
             .form-grid {
                 grid-template-columns: 1fr;
             }
@@ -364,7 +368,7 @@
                 display: block !important;
             }
 
-            .match-form-mobile > div {
+            .match-form-mobile>div {
                 margin-bottom: 25px;
             }
 
@@ -378,11 +382,11 @@
                 gap: 10px;
             }
 
-            .player-match-item > div:first-child {
+            .player-match-item>div:first-child {
                 min-width: 0;
             }
 
-            .player-match-item > div:first-child > div:first-child {
+            .player-match-item>div:first-child>div:first-child {
                 font-size: 0.9em;
                 line-height: 1.3;
             }
@@ -392,7 +396,7 @@
                 display: block !important;
             }
 
-            .profile-mobile-layout > div {
+            .profile-mobile-layout>div {
                 margin-bottom: 20px;
             }
 
@@ -429,7 +433,7 @@
                 gap: 10px;
             }
 
-            .match-item > div:last-child {
+            .match-item>div:last-child {
                 align-self: flex-end;
             }
 
@@ -439,8 +443,11 @@
             }
 
             /* Form inputs mobile */
-            select, input, button {
-                font-size: 16px; /* Prevents zoom on iOS */
+            select,
+            input,
+            button {
+                font-size: 16px;
+                /* Prevents zoom on iOS */
             }
 
             .btn {
@@ -481,7 +488,8 @@
                 min-width: 100px;
             }
 
-            .leaderboard-header, .player-row {
+            .leaderboard-header,
+            .player-row {
                 grid-template-columns: 40px 1fr 70px;
                 gap: 8px;
             }
@@ -1082,11 +1090,13 @@
             // Update ratings
             glicko.updateTeamRatings(winningTeam, losingTeam);
 
+            const matchDate = new Date().getTime();
+
             const match = {
                 winningTeam: `${winningTeam[0].name} & ${winningTeam[1].name}`,
                 losingTeam: `${losingTeam[0].name} & ${losingTeam[1].name}`,
                 score: `${winningScore}-${losingScore}`,
-                date: new Date().toLocaleDateString(),
+                date: matchDate,
                 players: {
                     winners: winningTeam.map(p => ({ name: p.name, rating: Math.round(p.rating) })),
                     losers: losingTeam.map(p => ({ name: p.name, rating: Math.round(p.rating) }))
@@ -1098,7 +1108,6 @@
             addDoc(collection(db, "matches"), match)
 
             // Add match to individual player histories
-            const matchDate = new Date().getTime();
 
             // Winners
             winningTeam[0].addMatch({
@@ -1218,9 +1227,6 @@
             matches.unshift(doc.data())
         })
         matches.sort((a, b) => a.date > b.date ? -1 : 1)
-        matches.forEach(match => {
-            console.log(new Date(match.date))
-        })
         document.getElementById("leaderboard-tab").onclick = event => showTab(event, "leaderboard")
         document.getElementById("add-match-tab").onclick = event => showTab(event, "add-match")
         document.getElementById("add-player-tab").onclick = event => showTab(event, "add-player")
