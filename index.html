@@ -898,7 +898,7 @@
                     <div class="player-name">${player.name}</div>
                     <div class="rating">${Math.round(player.rating)}</div>
                     <div class="win-loss">${player.wins}/${player.losses}</div>
-                    <div class="win rate">${(player.wins / (player.wins + player.losses)).toFixed(2) * 100}%</div>
+                    <div class="win rate">${Math.round(player.wins / (player.wins + player.losses) * 100)}%</div>
                 `;
                 row.onclick = (event) => {
                     showTab(event, 'player-profile')
