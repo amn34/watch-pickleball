@@ -897,8 +897,8 @@
                     <div class="rank ${rankClass}">${index + 1}</div>
                     <div class="player-name">${player.name}</div>
                     <div class="rating">${Math.round(player.rating)}</div>
-                    <div class="rd">${Math.round(player.rd)}</div>
-                    <div class="vol">${player.vol.toFixed(3)}</div>
+                    <div class="win-loss">${player.wins}/${player.losses}</div>
+                    <div class="win rate">${player.winRate}</div>
                 `;
                 row.onclick = (event) => {
                     showTab(event, 'player-profile')
