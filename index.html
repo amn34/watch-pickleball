@@ -810,50 +810,44 @@
             }
 
             // Update ratings for 2v2 match
-            updateTeamRatings(winningTeam, losingTeam) {
-                // Calculate average team ratings for expected outcome
-                const avgWinnerRating = (winningTeam[0].rating + winningTeam[1].rating) / 2;
-                const avgLoserRating = (losingTeam[0].rating + losingTeam[1].rating) / 2;
+updateTeamRatings(winningTeam, losingTeam) {
+    // 1. Calculate Team Averages
+    const avgWinnerRating = (winningTeam[0].rating + winningTeam[1].rating) / 2;
+    const avgLoserRating = (losingTeam[0].rating + losingTeam[1].rating) / 2;
 
-                // Create temporary players with team averages for calculation
-                const tempWinner = {
-                    rating: avgWinnerRating,
-                    rd: Math.min(winningTeam[0].rd, winningTeam[1].rd),
-                    vol: (winningTeam[0].vol + winningTeam[1].vol) / 2
-                };
-                const tempLoser = {
-                    rating: avgLoserRating,
-                    rd: Math.min(losingTeam[0].rd, losingTeam[1].rd),
-                    vol: (losingTeam[0].vol + losingTeam[1].vol) / 2
-                };
+    // 2. Expected Outcome (Standard Elo)
+    const expectedWin = 1 / (1 + Math.pow(10, (avgLoserRating - avgWinnerRating) / 400));
 
-                // Calculate expected outcome
-                const expectedWin = this.E(this.mu(tempWinner.rating), this.mu(tempLoser.rating), this.phi(tempLoser.rd));
+    // 3. Total Points to Exchange (Using your fixed K)
+    const K = 32; 
+    const totalPointsExchanged = K * (1 - expectedWin);
 
-                // Rating change based on score difference and expected outcome
-                const baseChange = (1 - expectedWin) * 32;
+    // 4. Distribute Points Based on Individual Rating
+    // WINNERS: Lower-rated player gets more points (the "underdog" bonus)
+    const totalWinnerRating = winningTeam[0].rating + winningTeam[1].rating;
+    
+    winningTeam.forEach(player => {
+        // Inverse weighting: (Other Teammate's Rating) / (Total Team Rating)
+        // This ensures the LOWER rated player gets a HIGHER % of the pot.
+        const teammate = winningTeam.find(p => p !== player);
+        const weight = teammate.rating / totalWinnerRating;
+        
+        player.rating += totalPointsExchanged * weight;
+        player.matches++;
+    });
 
-                // Update each player individually with team-based adjustment
-                winningTeam.forEach(player => {
-                    const personalExpected = this.E(this.mu(player.rating), this.mu(avgLoserRating), this.phi(tempLoser.rd));
-                    const personalChange = baseChange * (1.2 - personalExpected); // Slight personal adjustment
-
-                    player.rating += personalChange;
-                    player.rd = Math.max(30, player.rd - 2); // Decrease uncertainty
-                    player.vol = Math.max(0.03, player.vol * 0.99);
-                    player.matches++;
-                });
-
-                losingTeam.forEach(player => {
-                    const personalExpected = this.E(this.mu(player.rating), this.mu(avgWinnerRating), this.phi(tempWinner.rd));
-                    const personalChange = baseChange * (personalExpected - 0.2); // Negative change for losers
-
-                    player.rating -= Math.abs(personalChange);
-                    player.rd = Math.max(30, player.rd - 2);
-                    player.vol = Math.max(0.03, player.vol * 0.99);
-                    player.matches++;
-                });
-            }
+    // LOSERS: Higher-rated player loses more (the "anchor" penalty)
+    const totalLoserRating = losingTeam[0].rating + losingTeam[1].rating;
+    
+    losingTeam.forEach(player => {
+        // Direct weighting: (Own Rating) / (Total Team Rating)
+        // This ensures the HIGHER rated player loses a HIGHER % of the pot.
+        const weight = player.rating / totalLoserRating;
+        
+        player.rating -= totalPointsExchanged * weight;
+        player.matches++;
+    });
+}
         }
 
         // UI Functions
