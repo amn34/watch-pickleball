@@ -690,7 +690,7 @@
                 } else {
                     this.losses++;
                 }
-                setDoc(doc(db, "players", this.name), {
+                setDoc(doc(db, "players2026", this.name), {
                     name: this.name,
                     rating: this.rating,
                     rd: this.rd,
@@ -1099,7 +1099,7 @@ updateTeamRatings(winningTeam, losingTeam) {
 
             // Record match
             matches.unshift(match);
-            addDoc(collection(db, "matches"), match)
+            addDoc(collection(db, "matches2026"), match)
 
             // Add match to individual player histories
 
@@ -1211,12 +1211,12 @@ updateTeamRatings(winningTeam, losingTeam) {
         // Initialize the app
 
         // Get Players from FireStore
-        const playerSnapshot = await getDocs(collection(db, "players"))
+        const playerSnapshot = await getDocs(collection(db, "players2026"))
         playerSnapshot.forEach(doc => {
             const player = doc.data()
             players.push(new GlickoPlayer(player.name, player.rating, player.rd, player.vol, player.matches, player.ratingHistory, player.matchHistory, player.wins, player.losses))
         })
-        const matchesSnapshot = await getDocs(collection(db, "matches"))
+        const matchesSnapshot = await getDocs(collection(db, "matches2026"))
         matchesSnapshot.forEach(doc => {
             matches.unshift(doc.data())
         })
