@@ -874,7 +874,7 @@ updateTeamRatings(winningTeam, losingTeam) {
         }
 
         function updateLeaderboard() {
-            const sortedPlayers = [...players].sort((a, b) => b.rating - a.rating).filter((player) => player.name.contains("Random"));
+            const sortedPlayers = [...players].sort((a, b) => b.rating - a.rating);
             const tbody = document.getElementById('leaderboard-body');
             tbody.innerHTML = '';
 
